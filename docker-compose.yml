@@ -1,0 +1,88 @@
+version: "3.7"
+services:
+  nginx-master:
+    restart: always
+    container_name: nginxmaster
+    build:
+      context: ./nginx/
+    ports:
+      - 8080:80
+      - 80:80
+      - 443:443
+    networks:
+      - net
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/log:/var/log/nginx
+      - ./home/www:/var/www
+      - /etc/letsencrypt:/etc/letsencrypt
+  php7.2:
+    build:
+      context: ./php7.2/
+    container_name: php7.2
+    restart: always
+    networks:
+      - net
+    ports:
+      - "9000:9000"
+    volumes:
+      - /home/docker/www:/home/www
+      - /home/php7.2/log:/var/php/log
+      - /home/docker/php7.2/conf/php/php.ini:/usr/local/etc/php/php.ini
+      - /home/docker/php7.2/conf/php-fpm.conf:/usr/local/etc/php-fpm.conf
+      - /home/docker/php7.2/conf/php-fpm.d/www.conf:/usr/local/etc/php-fpm.d/www.conf
+      - /etc/hosts:/etc/hosts
+      - /root/.ssh/id_rsa.:/root/.ssh/id_rsa
+      - /root/.ssh/id_rsa.pub:/root/.ssh/id_rsa.pub
+      - /root/.ssh/authorized_keys:/root/.ssh/authorized_keys
+  mysqlmaster:
+    image: mysql:5.7
+    container_name: mysqlmaster
+    restart: always
+    ports:
+      - "3306:3306"
+    networks:
+      - net
+    volumes:
+      - /home/docker/mysql-master/conf/mysqld.cnf:/etc/mysql/mysql.conf.d/mysqld.cnf
+      - /home/docker/mysql-master/data:/var/lib/mysql
+      - /etc/hosts:/etc/hosts
+      - /root/.ssh:/root/.ssh
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+  redismaster:
+    build:
+      context: ./redis-master/
+    container_name: redismaster
+    networks:
+      - net
+    ports:
+      - "6379:6379"
+    volumes:
+      - /home/redis-master/data:/data
+      - /home/redis-master/conf/redis.conf:/usr/local/etc/redis/redis.conf
+      - /etc/hosts:/etc/hosts
+      - /root/.ssh/id_rsa.:/root/.ssh/id_rsa
+      - /root/.ssh/id_rsa.pub:/root/.ssh/id_rsa.pub
+      - /root/.ssh/authorized_keys:/root/.ssh/authorized_keys
+  rabbitmq:
+    build:
+      context: ./rabbitmq
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "15672:15672"
+    networks:
+      - net
+    volumes:
+      - /home/www:/home/www
+      - /etc/hosts:/etc/hosts
+      - /root/.ssh:/root/.ssh
+    environment:
+      - RABBITMQ_ERLANG_COOKIE=starphp
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=123456
+networks:
+  net:
+    external: true
+    driver: bridge
