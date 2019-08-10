@@ -82,6 +82,20 @@ services:
       - RABBITMQ_ERLANG_COOKIE=starphp
       - RABBITMQ_DEFAULT_USER=admin
       - RABBITMQ_DEFAULT_PASS=123456
+        mongodbmaster:
+  mongodbmaster:
+    image: mongo
+    container_name: mongodbmaster
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: 123456
+    networks:
+      - net
+    ports:
+      - "27017:27017"
+    volumes:
+      - /home/docker/mongodb/data:/data/db
 networks:
   net:
     external: true
